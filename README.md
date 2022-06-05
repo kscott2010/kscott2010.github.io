@@ -4,8 +4,8 @@
 
 ## Publication
 
-[Women in Computing R Shiny app] (https://kksmbamsds.shinyapps.io/IndependentStudyWomenInComputing/)
+[Women in Computing R Shiny app](https://kksmbamsds.shinyapps.io/IndependentStudyWomenInComputing/)
 
 ## Links
 
-[LinkedIn] (https://www.linkedin.com/in/kristenkscott/)
+[LinkedIn](https://www.linkedin.com/in/kristenkscott/)
