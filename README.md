@@ -6,6 +6,6 @@
 
 [Women in Computing R Shiny app](https://kksmbamsds.shinyapps.io/IndependentStudyWomenInComputing/)
 
-## Links
+## Links 
 
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
