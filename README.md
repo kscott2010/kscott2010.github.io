@@ -8,4 +8,6 @@
 
 ## Links 
 
+[Portfolio](https://kscott2010.github.io/)
+
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
