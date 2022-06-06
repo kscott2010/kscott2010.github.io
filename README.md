@@ -6,10 +6,8 @@
 
 [Women in Computing R Shiny app](https://kksmbamsds.shinyapps.io/IndependentStudyWomenInComputing/)
 
-[Portfolio - MySQL andPython](https://kscott2010.github.io/)
+[Portfolio - MySQL and Python](https://kscott2010.github.io/)
 
 ## Links 
-
-[Portfolio](https://kscott2010.github.io/)
 
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
