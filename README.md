@@ -19,3 +19,5 @@
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
 
 [YouTube](https://www.youtube.com/channel/UCes62hkp_F_EuN5u3VxI-dg)
+
+[Twitter](https://twitter.com/tech_kristen)
