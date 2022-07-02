@@ -14,7 +14,7 @@
 
 [Graduate Admissions Religious Preference Report (Redacted) Created in Pyramid Analytics (PowerBI)](https://github.com/kscott2010/kscott2010.github.io/blob/main/Admissions%20Religious%20Preference%5Bredacted%5D.PNG)
 
-## Links 
+## Social Media 
 
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
 
