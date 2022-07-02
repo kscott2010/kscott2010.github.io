@@ -8,6 +8,8 @@
 
 [SQL and Python Projects](https://kscott2010.github.io/)
 
+![Image Title](https://github.com/kscott2010/kscott2010.github.io/blob/main/Grad%20Admissions%20Status%20Report%5Bredacted%5D.png)
+
 ## Links 
 
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
