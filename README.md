@@ -17,3 +17,5 @@
 ## Links 
 
 [LinkedIn](https://www.linkedin.com/in/kristenkscott/)
+
+[YouTube](https://www.youtube.com/channel/UCes62hkp_F_EuN5u3VxI-dg)
