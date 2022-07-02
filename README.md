@@ -21,3 +21,7 @@
 [YouTube](https://www.youtube.com/channel/UCes62hkp_F_EuN5u3VxI-dg)
 
 [Twitter](https://twitter.com/tech_kristen)
+
+## Photo
+
+![Kristen with Bassoon](https://github.com/kscott2010/kscott2010.github.io/blob/main/Kristen5.0.jpg)
