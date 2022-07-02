@@ -1,0 +1,527 @@
+ui.R
+
+#install.packages(c("ggalt", "ggimage", "ggrepel", "jpeg", "png", "tidyverse", "raster"))
+library(shiny)
+library(tidyverse)
+library(shinythemes)
+library(jpeg)
+library(grid)
+library(ggimage)
+library(png)
+library(ggalt)
+library(tidyverse)
+library(ggrepel)
+library(stringr)
+library(raster) 
+library(rsconnect)
+
+####################################
+####################################
+####
+####  UI
+####
+####################################
+####################################
+
+ui <- fluidPage(
+  theme=shinytheme("cyborg"), #change this? nah
+  h1("Women in Computing"),
+  h3("by Kristen Kimira Scott, MBA"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        'decade',
+        label="Select Decade",
+        choices=c("Introduction","Pre-1950s","1950s","1960s","1970s","1980s","1990s")
+      ),
+      #numericInput("hgraph",
+                   #label="Graph Height (default = 600)",
+                   #step=50,
+                   #value=750),
+      #numericInput("wgraph",
+                   #label="Graph Width (default = 900)",
+                   #step=50,
+                   #value=1100), #can be taken out once values are determined
+      width=2
+    ),
+    mainPanel(plotOutput("plot1"))
+  )
+)
+
+
+
+
+server.R
+
+####################################
+####################################
+####
+####  SERVER
+####
+####################################
+####################################
+
+#insert actual code with intro section
+
+
+server <- function(input,output) {
+  
+  text = paste("\n",
+               "Introduction\n",
+               "The New York Times article by Clive Thompson,\n",
+               "'The Secret History of Women in Coding' (2019), provides a\n",
+               "snapshot into American history as to how Mary Allen Wilkes\n",
+               "and other women of various backgrounds initially dominated\n",
+               "and contributed to the vast field of what is now Computer Science.\n",
+               "Despite these great female accomplishments, the field experienced a\n",
+               "stark decline in the number of female contributors. The purpose of\n",
+               "this project is to display how women have influenced Computer\n",
+               "Science throughout history - from the 19th century up to the modern\n",
+               "era - via timelines. These visualizations will demonstrate the great\n",
+               "impact women made, both nationally and internationally,\n",
+               "in Computing.\n")
+  
+  intro <- ggplot() + 
+    annotate("text", x = 4, y = 30, size=10, label = text) + 
+    theme_bw() +
+    theme(panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank())+
+    theme(plot.background = element_rect(fill="lightcoral"))+
+    theme(panel.background = element_rect(fill="papayawhip"))
+  
+  datapre1950 <- tribble(~loc,~date, ~event, ~displ,
+                         1.5,1833,"Ada Lovelace was considered to have written instructions 
+                         for the first computer program in the mid-1800s. She met Charles Babbage, the designer of the Analytical Engine. 
+                         It was made of metal gears, can execute if/then commands and store information in memory. 
+                         She wrote an algorithm that the engine would use to calculate the Bernoulli sequence.",-.25,
+                         2.5,1875,"Harvard College Observatory began hiring women computers. 
+                         One of the first was American Anna Winlock, also an astronomer.",.25,
+                         5,1910,"(WWI)-Europe recruited women to handle explosives, work on cranes, assemble weapons,and make shells. 
+                         In the US, women operated phone switchboards and were dubbed 'The Hello Girls'.",-.25,
+                         6,1920,"During WWII in London, Beatrice Browne-Cave carried out original research for the government on the mathematics 
+                         of aeronautics which remained classified under the Official Secrets Act for fifty years. 
+                         She was elected as an associate fellow of the Royal Aeronautical Society in 1919 and awarded an MBE 
+                         (Most Excellent Order of the British Empire).",.25,
+                         9.2,1945,"Virginia Aderholt, code-breaker, deciphered and translated Japanese 
+                         transmission to the Swiss agreeing to a surrender. 
+                         She became the first American to learn that World War II had officially ended.",.25,
+                         9.8,1946,"Six women (Jean Jennings, Marlyn Wescoff, Ruth Lichterman, Betty Snyder, Frances Bilas, and Kay McNulty) 
+                         programmed the first all-electronic computer, the ENIAC (Electronic Numerical Integrator and Computer), 
+                         a project run by the U.S. Army as a secret World War II project. 
+                         They learned to program with only logical diagrams. When finished, 
+                         the ENIAC ran a ballistics trajectory - a differential calculus equation - in seconds! 
+                         Yet when the ENIAC was unveiled to the public in 1946, the women were never introduced and remained invisible.",-.25)
+  datapre1950$location.pos <- ifelse(datapre1950$displ>0,datapre1950$date,"") #creating a variable if axis value is positive
+  datapre1950$location.neg <- ifelse(datapre1950$displ<0,datapre1950$date,"") #creating a variable if axis value is negative
+  datapre1950$event.pos <- ifelse(datapre1950$displ>0,datapre1950$event,NA)
+  datapre1950$event.neg <- ifelse(datapre1950$displ<0,datapre1950$event,NA)
+  datapre1950$event.pos2 <- str_wrap(datapre1950$event.pos,50)
+  datapre1950$event.neg2 <- str_wrap(datapre1950$event.neg,50)
+  
+  #load background image
+  bck.img <- readJPEG("eniac_Burlesque.jpg")
+  
+  
+  #with pickture background
+  timeline.pre1950.US <- 
+    ggplot(datapre1950,aes(loc,displ))+
+    annotation_custom(rasterGrob(bck.img, width=unit(1,"npc"), height=unit(1,"npc")), -Inf, Inf, -Inf, Inf)+
+    geom_lollipop(size=.5,col="navajowhite3")+ #creates the lines to the locations
+    geom_label(datapre1950=datapre1950,aes(loc,displ,label=event.pos2,hjust="bottom",vjust="middle"),fill="moccasin",fontface="plain")+ #labels for the points - years left
+    geom_label(datapre1950=datapre1950,aes(loc,displ,label=event.neg2,hjust="top",vjust="middle"),fill="moccasin")+ #years right
+    geom_text(datapre1950=datapre1950,aes(loc,displ,label=location.pos,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    geom_text(datapre1950=datapre1950,aes(loc,displ,label=location.neg,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    xlim(min=0,max=12)+ #limits for the time axis
+    ylim(min=-1,max=1)+ #limits for the event axis
+    geom_hline(yintercept=0,col="navajowhite3",size=1.5)+ #line down the middle
+    ggtitle("Women in Computing: Pre-1950")+
+    theme_classic()+
+    labs(caption = "text")+
+    theme(plot.background=element_rect(fill="tan4"),
+          legend.position = "none",
+          panel.border=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank(),
+          plot.title=element_text(hjust=.5, size=30, face = "bold"))+
+    #theme(plot.title = element_text(size=40, face = "bold"))+
+    coord_flip()+ #+ #change timeline from horizontal to vertical
+    labs(caption = "Sources: https://bit.ly/2t2AGwT, https://nyti.ms/2Jlc1Qo, https://bit.ly/2Y0zslz, https://bit.ly/2JmCKft, 
+         https://bit.ly/2UPrFVq, https://bit.ly/1qK9luz, https://bit.ly/2Ip7Fn2, https://bit.ly/2CqLA6h, https://bit.ly/2GRI88t")
+  
+  
+  #timeline.pre1950.US # to view
+  #ggsave("timeline.pre1950.png",plot=timeline.pre1950.US,dpi=320,width=12.5,height=9.5) #vary height and width to get good pic
+  
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ###################1950s
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  
+  data1950s <- tribble(~loc,~date, ~event, ~displ,
+                       1, 1950,"Jean Sammet was a programmer and computer scientist. She was best recognized for her work in the FORMAC, the first popular used system for manipulating nonnumeric algebraic expressions. She supervised the first scientific programming group for the company, Sperry Gyroscope (1955-1958) and served as a key member of the committee that developed COBOL.", .25,
+                       2, 1952,"Grace Hopper was a computer pioneer and naval officer. She received her master’s and Ph.D. in mathematics from Yale. One of the first modern “programmers,” Hopper is best known for contributing to the development of computer languages such as A-0, Flow-Matic, and COBOL. She assisted in the calculations for the army and “ran numbers” in developing the plutonium bomb dropped on Nagasaki, Japan. As head programmer for Remington Rand, she worked on the UNIVAC I.", -.25,
+                       5, 1956,"Evelyn Boyd Granville is an African-American educator and mathematician who became only the second black woman to hold a Ph.D. in mathematics. Granville joined IBM in 1956 and developed computer software that examined satellites. She relocated to Los Angeles to calculate orbits for the Computation and Data Reduction Center of Space Technology. She later worked on the Apollo Project at North American Aviation where she created computer programs.", .25,
+                       10, 1957,"After graduating with her master’s degree in mathematics from the University of Michigan in 1957, Frances E. Allen joined IBM’s Thomas J. Watson Research Center, taught staff scientists a new computer programming language named FORTRAN (Formula Translation).", .25)
+  data1950s$location.pos <- ifelse(data1950s$displ>0,data1950s$date,"") #creating a variable if axis value is positive
+  data1950s$location.neg <- ifelse(data1950s$displ<0,data1950s$date,"") #creating a variable if axis value is negative
+  data1950s$event.pos <- ifelse(data1950s$displ>0,data1950s$event,NA)
+  data1950s$event.neg <- ifelse(data1950s$displ<0,data1950s$event,NA)
+  data1950s$event.pos2 <- str_wrap(data1950s$event.pos,50)
+  data1950s$event.neg2 <- str_wrap(data1950s$event.neg,50)
+  data1950s$location.pos3 <- ifelse(data1950s$location.pos=="1957","1957",NA)
+  
+  #load background image
+  bck2.img <- readJPEG("1950.jpg")
+  
+  
+  #with pickture background
+  timeline.1950s.US <- 
+    ggplot(data1950s,aes(loc,displ))+
+    annotation_custom(rasterGrob(bck2.img, width=unit(1,"npc"), height=unit(1,"npc")), -Inf, Inf, -Inf, Inf)+
+    geom_lollipop(size=.5,col="navajowhite3")+ #creates the lines to the locations
+    geom_label(data1950s=data1950s,aes(loc,displ,label=event.pos2,hjust="bottom",vjust="middle"),fill="moccasin",fontface="plain")+ #labels for the points - years left
+    geom_label(data1950s=data1950s,aes(loc,displ,label=event.neg2,hjust="top",vjust="middle"),fill="moccasin")+ #years right
+    geom_text(data1950s=data1950s,aes(loc,displ,label=location.pos,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="grey8")+
+    geom_text(data1950s=data1950s,aes(loc,displ,label=location.neg,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="grey8")+
+    geom_text(data1950s=data1950s,aes(loc,displ,label=location.pos3,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="white")+
+    xlim(min=0,max=12)+ #limits for the time axis
+    ylim(min=-1,max=1)+ #limits for the event axis
+    geom_hline(yintercept=0,col="navajowhite3",size=1.5)+ #line down the middle
+    ggtitle("Women in Computing: 1950s")+
+    theme_classic()+
+    theme(plot.background=element_rect(fill="lightsalmon3"),
+          legend.position = "none",
+          panel.border=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank(),
+          plot.title=element_text(hjust=.5, size=30, face = "bold", color = "grey8"))+
+    #theme(plot.title = element_text(size=40, face = "bold"))+
+    coord_flip()+##change timeline from horizontal to vertical
+    labs(caption = "Sources: https://bit.ly/2TKEiVn, https://bit.ly/2lERNF5, https://bit.ly/2sDsyHn, https://bit.ly/2K61Fm1")
+  
+  #timeline.1950s.US # to view
+  #ggsave("timeline.1950s.png",plot=timeline.1950s.US,dpi=320,width=12.5,height=9.5) #vary height and width to get good pic
+  
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ###################1960s
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  
+  data1960s <- tribble(~loc,~date, ~event, ~displ,
+                       1, 1960,"The first two software houses worthy of name in the UK were founded by women. At this time, coding was seen as 'women’s' work. More than 1 in 4 computer programmers were women in the United States.", .25,
+                       2, 1961,"Katherine Johnson and her team calculated the trajectories for Alan Shepard’s successful flight for NASA. Katherine was an African-American who traced out Freedom 7's exact path from liftoff to splashdown. She would go on to work on the Apollo program for trajectory calculations that assisted the 1969 moon landing. In the same year was the creation of LINC, one of the world’s first interactive computers. Programmer and logic designer Mary Allen Wilkes was assigned to this project.", -.25,
+                       5, 1963,"Katherine Johnson, Dorothy Vaughan, and Mary Jackson, were part of NASA's team of human 'computers'. They calculated the complex equations that helped Neil Armstrong, Alan Shepard, and Glenn travel to space safely.", .25,
+                       6, 1965,"A job in computer programming was perceived as a natural and fitting career choice for women. In MITs Lincoln Labs, most of the computer programmers were women.", -.25,
+                       9, 1968,"Shifting from a woman-friendly field to a male-dominated field, employers began relying on aptitude tests and personality profiles that weeded out women by prioritizing stereotypically masculine traits and, increasingly, anti-socialness.", .25,
+                       10, 1969,"Computer pioneer Margaret Hamilton was critical to landing astronauts on the moon for the first time on July 20, 1969 and returning them safely a few days later. The MIT computer programmer and working mother led the team that created the onboard flight software for the Apollo missions, including Apollo 11.", -.25)
+  data1960s$location.pos <- ifelse(data1960s$displ>0,data1960s$date,"") #creating a variable if axis value is positive
+  data1960s$location.neg <- ifelse(data1960s$displ<0,data1960s$date,"") #creating a variable if axis value is negative
+  data1960s$event.pos <- ifelse(data1960s$displ>0,data1960s$event,NA)
+  data1960s$event.neg <- ifelse(data1960s$displ<0,data1960s$event,NA)
+  data1960s$event.pos2 <- str_wrap(data1960s$event.pos,50)
+  data1960s$event.neg2 <- str_wrap(data1960s$event.neg,50)
+  data1960s$location.neg3 <- ifelse(data1960s$location.neg=="1969","1969",NA)
+  data1960s$location.neg4 <- ifelse(data1960s$location.neg=="1965","1965",NA)
+  #data1960s$location.pos4 <- ifelse(data1960s$location.pos=="1963","1963",NA)
+  #data1960s$location.pos5 <- ifelse(data1960s$location.pos=="1960","1960",NA)
+  
+  #load background image
+  bck3.img <- readJPEG("1960.jpg")
+  
+  
+  #with pickture background
+  timeline.1960s.US <- 
+    ggplot(data1960s,aes(loc,displ))+
+    annotation_custom(rasterGrob(bck3.img, width=unit(1,"npc"), height=unit(1,"npc")), -Inf, Inf, -Inf, Inf)+
+    geom_lollipop(size=.5,col="navajowhite3")+ #creates the lines to the locations
+    geom_label(data1960s=data1960s,aes(loc,displ,label=event.pos2,hjust="bottom",vjust="middle"),fill="moccasin",fontface="plain")+ #labels for the points - years left
+    geom_label(data1960s=data1960s,aes(loc,displ,label=event.neg2,hjust="top",vjust="middle"),fill="moccasin")+ #years right
+    geom_text(data1960s=data1960s,aes(loc,displ,label=location.pos,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="black")+
+    geom_text(data1960s=data1960s,aes(loc,displ,label=location.neg,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="black")+
+    geom_text(data1960s=data1960s,aes(loc,displ,label=location.neg3,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    geom_text(data1960s=data1960s,aes(loc,displ,label=location.neg4,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    #geom_text(data1960s=data1960s,aes(loc,displ,label=location.pos4,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="black")+
+    #geom_text(data1960s=data1960s,aes(loc,displ,label=location.pos5,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="black")+
+    xlim(min=0,max=11)+ #limits for the time axis
+    ylim(min=-1,max=1)+ #limits for the event axis
+    geom_hline(yintercept=0,col="navajowhite3",size=1.5)+ #line down the middle
+    ggtitle("Women in Computing: 1960s")+
+    theme_classic()+
+    theme(plot.background=element_rect(fill="navajowhite4"),
+          legend.position = "none",
+          panel.border=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank(),
+          plot.title=element_text(hjust=.5, size=30, face = "bold", color= "gray6"))+
+    #theme(plot.title = element_text(size=40, face = "bold"))+
+    coord_flip()+#+ #change timeline from horizontal to vertical
+    labs(caption = "Sources: https://bit.ly/2JOFYZI, https://bit.ly/2U83ogt, https://bit.ly/2L759SO, https://bit.ly/2CK3Jdq, https://bit.ly/2L4lXKK, 
+         https://bit.ly/32CbsHE, https://bit.ly/2YfOd7J")
+  
+  #timeline.1960s.US # to view
+  #ggsave("timeline.1960s.png",plot=timeline.1960s.US,dpi=320,width=12.5,height=9.5) #vary height and width to get good pic
+  
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ###################1970s
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  
+  data1970s <- tribble(~loc,~date, ~event, ~displ,
+                       1, 1970,"Joan Margaret Winters began working in Computer Services at Cornell University, where she designed and implemented SPINDEX II, an application for the University Archives and the Department of Manuscripts.", .25,
+                       3, 1972,"Adele Goldberg was one of the designers and developers of the Smalltalk language.", -.25,
+                       3, 1972,"Karen Spärck Jones introduced the concept of Inverse Document Frequency (IDF), weighting in information retrieval.", .25,
+                       5, 1975,"Rosa Peter wrote the book: 'Recursive Functions in Computer Theory'.", .25,
+                       6, 1976,"Barbara Liskov became a member of SHARE’s Human Factors Project, focusing on enlightening employees of IBM and SHARE members (an IBM computer user group) about the importance of factors in designing software, hardware, and carrying out research into software appraisal tools.", -.25,
+                       8, 1977,"Carla Meninsky created the Indy 500, Star Raiders, and Dodge ‘Em games.", -.25,
+                       8.5, 1978,"Sophie Wilson designed the Acorn Microcomputer. Alexandra Illmer Forsythe co-authored a series of textbooks on computer science with E.I. Organick and R.P. Plummer, titled 'Programming Language Structures'.", .25,
+                       11, 1979,"Carol Shaw became the first woman to program and design a video game, 3D Tic-Tac-Toe, for the Atari 2600.", -.25)
+  data1970s$location.pos <- ifelse(data1970s$displ>0,data1970s$date,"") #creating a variable if axis value is positive
+  data1970s$location.neg <- ifelse(data1970s$displ<0,data1970s$date,"") #creating a variable if axis value is negative
+  data1970s$event.pos <- ifelse(data1970s$displ>0,data1970s$event,NA)
+  data1970s$event.neg <- ifelse(data1970s$displ<0,data1970s$event,NA)
+  data1970s$event.pos2 <- str_wrap(data1970s$event.pos,50)
+  data1970s$event.neg2 <- str_wrap(data1970s$event.neg,50)
+  data1970s$location.neg3 <- ifelse(data1970s$location.neg=="1976","1976",NA)
+  data1970s$location.pos3 <- ifelse(data1970s$location.pos=="1977","1977",NA)
+  data1970s$location.pos4 <- ifelse(data1970s$location.pos=="1975","1975",NA)
+  
+  #load background image
+  bck4.img <- readJPEG("1970.jpg")
+  
+  
+  #with pickture background
+  timeline.1970s.US <- 
+    ggplot(data1970s,aes(loc,displ))+
+    annotation_custom(rasterGrob(bck4.img, width=unit(1,"npc"), height=unit(1,"npc")), -Inf, Inf, -Inf, Inf)+
+    geom_lollipop(size=.5,col="navajowhite3")+ #creates the lines to the locations
+    geom_label(data1970s=data1970s,aes(loc,displ,label=event.pos2,hjust="bottom",vjust="middle"),fill="moccasin",fontface="plain")+ #labels for the points - years left
+    geom_label(data1970s=data1970s,aes(loc,displ,label=event.neg2,hjust="top",vjust="middle"),fill="moccasin")+ #years right
+    geom_text(data1970s=data1970s,aes(loc,displ,label=location.pos,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    geom_text(data1970s=data1970s,aes(loc,displ,label=location.neg,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    geom_text(data1970s=data1970s,aes(loc,displ,label=location.neg3,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="gray8")+
+    geom_text(data1970s=data1970s,aes(loc,displ,label=location.pos3,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="gray8")+
+    geom_text(data1970s=data1970s,aes(loc,displ,label=location.pos4,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="gray8")+
+    xlim(min=0,max=12)+ #limits for the time axis
+    ylim(min=-1,max=1)+ #limits for the event axis
+    geom_hline(yintercept=0,col="navajowhite3",size=1.5)+ #line down the middle
+    ggtitle("Women in Computing: 1970s")+
+    theme_classic()+
+    theme(plot.background=element_rect(fill="bisque3"),
+          legend.position = "none",
+          panel.border=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank(),
+          plot.title=element_text(hjust=.5, size=30, face = "bold", color="gray8"))+
+    #theme(plot.title = element_text(size=40, face = "bold"))+
+    coord_flip()+
+    labs(caption = "Sources: https://bit.ly/2FbJrfb, https://bit.ly/2W5v6HW, https://muse.cm/1AbFDz5, https://bit.ly/2lERNF5, 
+         https://bit.ly/2Y5nZ43, https://bit.ly/2OiXO9j") 
+  
+  
+  #timeline.1970s.US # to view
+  #ggsave("timeline.1970s.png",plot=timeline.1970s.US,dpi=320,width=12.5,height=9.5) #vary height and width to get good pic
+  
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ###################1980s
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  
+  data1980s <- tribble(~loc,~date, ~event, ~displ,
+                       .5, 1980,"The Commodore 64, and Apple Macintosh were released in the early 1980’s. The marketing was aimed at boys and men. A Commodore 64 costs roughly $1,500 USD in today’s dollars and an Apple Macintosh is indexed at $5,763.", -.25,
+                       1, 1982,"Frances Brazier is a professor of Computer Science at the Vrije Universiteit in Amsterdam, and one of the founder of NLNET, the first Internet service provider in the Netherlands.", .25,
+                       3, 1984,"Radia Perlman invented the Spanning Tree Protocol. She has done extensive and innovative research, particularly on encryption and networking. She received the USENIX Lifetime Achievement Award in 2006.", -.25,
+                       3, 1984,"A report by Ebury Publishing reported that in a typical family, only 5% of mothers and 19% of daughters were using a computer at home, compared to 25% of fathers and 51% of sons.", .25,
+                       6, 1985,"A report finds that as for the everyday home usage of personal computers, men were far more likely to use them than were women. Only 27% of men reported not using a computer on a weekly basis, compared to 55% of females surveyed.", -.25,
+                       9, 1987,"Monica Lam receives a Ph.D. for her work on optimising compilers. She has since performed influential research in many areas of computer science, including co-authoring a textbook on compilers, best known as the 'dragon book'.", -.25,
+                       11, 1989,"Frances E. Allen became the first female IBM Fellow. In 2006, she became the first female recipient of the ACM's Turing Award, the highest honor in computer science.", -.25)
+  data1980s$location.pos <- ifelse(data1980s$displ>0,data1980s$date,"") #creating a variable if axis value is positive
+  data1980s$location.neg <- ifelse(data1980s$displ<0,data1980s$date,"") #creating a variable if axis value is negative
+  data1980s$event.pos <- ifelse(data1980s$displ>0,data1980s$event,NA)
+  data1980s$event.neg <- ifelse(data1980s$displ<0,data1980s$event,NA)
+  data1980s$event.pos2 <- str_wrap(data1980s$event.pos,50)
+  data1980s$event.neg2 <- str_wrap(data1980s$event.neg,50)
+  data1980s$location.pos5 <- ifelse(data1980s$location.pos=="1987","1987",NA)
+  
+  
+  #load background image
+  bck5.img <- readJPEG("1980.jpg")
+  
+  
+  #with pickture background
+  timeline.1980s.US <- 
+    ggplot(data1980s,aes(loc,displ))+
+    annotation_custom(rasterGrob(bck5.img, width=unit(1,"npc"), height=unit(1,"npc")), -Inf, Inf, -Inf, Inf)+
+    geom_lollipop(size=.5,col="navajowhite3")+ #creates the lines to the locations
+    geom_label(data1980s=data1980s,aes(loc,displ,label=event.pos2,hjust="bottom",vjust="middle"),fill="moccasin",fontface="plain")+ #labels for the points - years left
+    geom_label(data1980s=data1980s,aes(loc,displ,label=event.neg2,hjust="top",vjust="middle"),fill="moccasin")+ #years right
+    geom_text(data1980s=data1980s,aes(loc,displ,label=location.pos,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="grey11")+
+    geom_text(data1980s=data1980s,aes(loc,displ,label=location.neg,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="grey11")+
+    geom_text(data1980s=data1980s,aes(loc,displ,label=location.pos5,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="white")+
+    xlim(min=0,max=12)+ #limits for the time axis
+    ylim(min=-1,max=1)+ #limits for the event axis
+    geom_hline(yintercept=0,col="navajowhite3",size=1.5)+ #line down the middle
+    ggtitle("Women in Computing: 1980s")+
+    theme_classic()+
+    theme(plot.background=element_rect(fill="chocolate4"),
+          legend.position = "none",
+          panel.border=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank(),
+          plot.title=element_text(hjust=.5, size=30, face = "bold", color="grey11"))+
+    #theme(plot.title = element_text(size=40, face = "bold"))+
+    coord_flip()+
+    labs(caption= "Sources: https://bit.ly/2Qu2kyR, https://bit.ly/2HJFW3q, https://bit.ly/2HImHXY, https://bit.ly/2UiDDdj, 
+         https://bit.ly/2TKEiVn, https://bit.ly/2ooUglI")
+  
+  
+  #timeline.1980s.US # to view
+  #ggsave("timeline.1980s.png",plot=timeline.1980s.US,dpi=320,width=12.5,height=9.5) #vary height and width to get good pic
+  
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ###################1990s
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  ############################################################
+  
+  data1990s <- tribble(~loc,~date, ~event, ~displ,
+                       1, 1990, "According to the National Public Radio, women have increased in majoring in physical science, law, and medicine, but have decreased in majoring in computer science.  From 1990 to 2000, there was a 2.5% drop in the field of computer science for female majors.", -.25,
+                       1.5, 1991, "Ellen Spertus wrote a report on “Why are There so Few Female Computer Scientists?”, noting the slow growth of female computer science students. She discusses how societal factors—such as the male-dominating environment — affects the gender gap.", .25,
+                       3.5, 1996, "Carly Fiorina oversaw Lucent Technologies, Inc. By 1998, she was the president of its global service-provider division until she became CEO of Hewlett-Packard in 1999.", .25,
+                       5.5, 1997, "Nora Denzel, who joined IBM as a software engineer in 1984, was an executive with business responsibility for the global storage software business. During this time, she held positions that was in the field of engineering, marketing, business operations and planning.", .25,
+                       7.5, 1998, "Susan Wojcicki rents her garage to Larry Page and Sergey Brin, founders of Google. She later became Google’s first marketing manager, helped build AdWords and AdSense, and helped Google aquire YouTube.", -.25,
+                       11, 1999, "Page and Brin hired Stanford graduate, Marissa Mayer, who became Google’s first female engineer and product manager for the search page. Mayer would eventually leave Google for Yahoo and become its CEO.", -.25)
+  data1990s$location.pos <- ifelse(data1990s$displ>0,data1990s$date,"") #creating a variable if axis value is positive
+  data1990s$location.neg <- ifelse(data1990s$displ<0,data1990s$date,"") #creating a variable if axis value is negative
+  data1990s$event.pos <- ifelse(data1990s$displ>0,data1990s$event,NA)
+  data1990s$event.neg <- ifelse(data1990s$displ<0,data1990s$event,NA)
+  data1990s$event.pos2 <- str_wrap(data1990s$event.pos,50)
+  data1990s$event.neg2 <- str_wrap(data1990s$event.neg,50)
+  #data1990s$location.neg3 <- ifelse(data1990s$location.neg=="1996","1996",NA)
+  
+  #load background image
+  bck6.img <- readJPEG("1990_slate.jpg")
+  
+  
+  #with pickture background
+  timeline.1990s.US <- 
+    ggplot(data1990s,aes(loc,displ))+
+    annotation_custom(rasterGrob(bck6.img, width=unit(1,"npc"), height=unit(1,"npc")), -Inf, Inf, -Inf, Inf)+
+    geom_lollipop(size=.5,col="navajowhite3")+ #creates the lines to the locations
+    geom_label(data1990s=data1990s,aes(loc,displ,label=event.pos2,hjust="bottom",vjust="middle"),fill="moccasin",fontface="plain")+ #labels for the points - years left
+    geom_label(data1990s=data1990s,aes(loc,displ,label=event.neg2,hjust="top",vjust="middle"),fill="moccasin")+ #years right
+    geom_text(data1990s=data1990s,aes(loc,displ,label=location.pos,hjust=1.5,vjust=-1,fontface="bold"),size=6,col="black")+
+    geom_text(data1990s=data1990s,aes(loc,displ,label=location.neg,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="black")+
+    #geom_text(data1990s=data1990s,aes(loc,displ,label=location.neg3,hjust=-.5,vjust=-1,fontface="bold"),size=6,col="moccasin")+
+    xlim(min=0,max=12)+ #limits for the time axis
+    ylim(min=-1,max=1)+ #limits for the event axis
+    geom_hline(yintercept=0,col="navajowhite3",size=1.5)+ #line down the middle
+    ggtitle("Women in Computing: 1990s")+
+    theme_classic()+
+    theme(plot.background=element_rect(fill="rosybrown"),
+          legend.position = "none",
+          panel.border=element_blank(),
+          axis.ticks=element_blank(),
+          axis.line=element_blank(),
+          axis.text=element_blank(),
+          axis.title=element_blank(),
+          plot.title=element_text(hjust=.5, size=30, face = "bold"))+
+    #theme(plot.title = element_text(size=40, face = "bold"))+
+    coord_flip()+
+    labs(caption = "Sources: https://n.pr/2sDZkb8, https://bit.ly/2LSiJhe, https://bit.ly/2SQewLU, https://bit.ly/2YxnW19, 
+         https://bloom.bg/2E6vmks, https://bit.ly/2U3EmQt, https://bit.ly/2SK7t7p")
+  
+  
+  #timeline.1990s.US # to view
+  #ggsave("timeline.1990s.png",plot=timeline.1990s.US,dpi=320,width=12.5,height=9.5) #vary height and width to get good pic
+#####################
+  ##############
+  
+  ex.plot <- reactive({
+    switch(input$decade,
+           "Introduction"=intro,
+           "Pre-1950s"=timeline.pre1950.US,
+           "1950s"=timeline.1950s.US,
+           "1960s"=timeline.1960s.US,
+           "1970s"=timeline.1970s.US,
+           "1980s"=timeline.1980s.US,
+           "1990s"=timeline.1990s.US
+    )
+  })
+  
+  #graphHeight=reactive({input$hgraph}) #can be removed after values determined
+  #graphWidth=reactive({input$wgraph}) #can be removed after values determined
+  output$plot1 <- renderPlot({ex.plot()},
+  #width=graphWidth,height=graphHeight) ##this one too
+  width=900,height=650) #add this one in
+  
+}
+
+shinyApp(ui,server)
