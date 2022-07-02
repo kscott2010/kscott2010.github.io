@@ -4,7 +4,7 @@
 
 ## Portfolio
 
-[Women in Computing R Shiny app](https://kksmbamsds.shinyapps.io/IndependentStudyWomenInComputing/)
+[Women in Computing R Shiny app](https://kksmbamsds.shinyapps.io/IndependentStudyWomenInComputing/) code is provided in main branch
 
 [SQL and Python Projects](https://kscott2010.github.io/)
 
