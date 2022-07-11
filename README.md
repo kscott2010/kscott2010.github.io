@@ -20,7 +20,7 @@
 
 [YouTube](https://www.youtube.com/channel/UCes62hkp_F_EuN5u3VxI-dg)
 
-[Twitter](https://twitter.com/tech_kristen)
+[Twitter](https://twitter.com/data_kristen)
 
 ## Photo
 
